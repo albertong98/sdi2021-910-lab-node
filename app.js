@@ -3,11 +3,7 @@ let app = express();
 
 app.set('port',8081);
 
-app.get('/usuarios',(req,res) => {
-    console.log();
-    res.send("ver usuarios");
-});
-
-app.get('/canciones',(req,res) => res.send("ver canciones"));
+require("./routes/rusuarios.js")(app); // (app, param1, param2, etc.)
+require("./routes/rcanciones.js")(app);
 
 app.listen(app.get('port'), () => console.log("server activo"));
