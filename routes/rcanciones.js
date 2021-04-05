@@ -4,7 +4,7 @@ module.exports = (app,swig,gestorBD) => {
 
     app.get('/suma', (req, res) => res.send(String(parseInt(req.query.num1) + parseInt(req.query.num2))));
 
-    app.get('/canciones/agregar',(req,res) => res.send(agregarCancion(swig)));
+    app.get('/canciones/agregar',(req,res) => res.send(agregarCancion(req,res,swig)));
 
     app.get('/canciones/:id', (req, res) => res.send( 'id: ' + req.params.id));
 
@@ -44,10 +44,16 @@ let getCanciones = swig => {
 }
 
 let postCancion = (req,res,gestorBD) =>{
+    if ( req.session.usuario == null){
+        res.redirect("/tienda");
+        return;
+    }
+
     let cancion = {
         nombre : req.body.nombre,
         genero : req.body.genero,
-        precio : req.body.precio
+        precio : req.body.precio,
+        autor: req.session.usuario
     }
     gestorBD.insertarCancion(cancion, function(id){
         if (id == null) {
@@ -76,7 +82,11 @@ let postCancion = (req,res,gestorBD) =>{
     });
 }
 
-let agregarCancion = swig => {
+let agregarCancion = (req,res,swig) => {
+    if ( req.session.usuario == null){
+        res.redirect("/tienda");
+        return;
+    }
     return swig.renderFile('views/bagregar.html', {});
 }
 
