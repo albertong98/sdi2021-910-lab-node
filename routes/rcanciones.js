@@ -112,11 +112,19 @@ let getCancion = (req,res,gestorBD,swig) => {
         if ( canciones == null ){
             res.send("Error al recuperar la canción.");
         } else {
-            let respuesta = swig.renderFile('views/bcancion.html',
-                {
-                    cancion : canciones[0]
-                });
-            res.send(respuesta);
+            let criterio = { "cancion_id" : canciones[0]._id }
+            gestorBD.obtenerComentarios(criterio,function(comentarios){
+                if(comentarios == null){
+                    res.send("Error al recuperar los comentarios.");
+                }else{
+                    let respuesta = swig.renderFile('views/bcancion.html',
+                        {
+                            cancion : canciones[0],
+                            comentarios : comentarios
+                        });
+                    res.send(respuesta);
+                }
+            })
         }
     });
 }

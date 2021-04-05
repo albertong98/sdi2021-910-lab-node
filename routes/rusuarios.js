@@ -9,6 +9,13 @@ module.exports = (app,swig,gestorBD) => {
 
     app.get('/desconectarse', (req,res) => logout(req,res));
 
+    app.get('/registrarse',(req,res) => getSignUp(res,swig))
+
+}
+
+let getSignUp = (res,swig) => {
+    let respuesta = swig.renderFile('views/bregistro.html', {});
+    res.send(respuesta);
 }
 
 let logout = (req,res) => {

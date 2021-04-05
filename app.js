@@ -38,6 +38,7 @@ routerUsuarioSession.use(function(req, res, next) {
 });
 app.use("/canciones/agregar",routerUsuarioSession);
 app.use("/publicaciones",routerUsuarioSession);
+app.use("/comentarios",routerUsuarioSession);
 
 let routerAudios = express.Router();
 routerAudios.use(function(req, res, next) {
@@ -65,5 +66,6 @@ app.use(express.static('public'));
 
 require("./routes/rusuarios.js")(app,swig,gestorBD); // (app, param1, param2, etc.)
 require("./routes/rcanciones.js")(app,swig,gestorBD);
+require("./routes/rcomentarios")(app,swig,gestorBD);
 
 app.listen(app.get('port'), () => console.log("server activo"));
