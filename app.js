@@ -7,6 +7,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 let swig = require('swig');
 
+let fileUpload = require('express-fileupload');
+app.use(fileUpload());
+
 let mongo = require('mongodb');
 let dburi = 'mongodb://admin:sdi@tiendamusica-shard-00-00.vadns.mongodb.net:27017,tiendamusica-shard-00-01.vadns.mongodb.net:27017,tiendamusica-shard-00-02.vadns.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-mt8n44-shard-0&authSource=admin&retryWrites=true&w=majority'
 
