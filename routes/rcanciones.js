@@ -15,7 +15,96 @@ module.exports = (app,swig,gestorBD) => {
     app.get('/cancion/:id', (req,res) => getCancion(req,res,gestorBD,swig));
 
     app.post('/cancion', (req,res) => postCancion(req,res,gestorBD));
+
+    app.get('/publicaciones', (req,res) => getPublicaciones(req,res,swig,gestorBD));
+
+    app.get('/cancion/modificar/:id', (req,res) => modificarCancion(req,res,gestorBD,swig));
+
+    app.post('/cancion/modificar/:id', (req,res) => postModificarCancion(req,res,gestorBD));
 };
+
+let modificarCancion = (req,res,gestorBD,swig) => {
+    let criterio = { "_id" : gestorBD.mongo.ObjectID(req.params.id) };
+    gestorBD.obtenerCanciones(criterio,function(canciones){
+        if ( canciones == null ){
+            res.send(respuesta);
+        } else {
+            let respuesta = swig.renderFile('views/bcancionModificar.html',
+                {
+                    cancion : canciones[0]
+                });
+            res.send(respuesta);
+        }
+    });
+}
+
+let postModificarCancion = (req,res,gestorBD) => {
+    let id = req.params.id;
+    let criterio = { "_id" : gestorBD.mongo.ObjectID(id) };
+    let cancion = {
+        nombre : req.body.nombre,
+        genero : req.body.genero,
+        precio : req.body.precio
+    }
+    gestorBD.modificarCancion(criterio, cancion, function(result) {
+        if (result == null) {
+            res.send("Error al modificar ");
+        } else {
+            paso1ModificarPortada(req.files, id, function (result) {
+                if( result == null){
+                    res.send("Error en la modificación");
+                } else {
+                    res.send("Modificado");
+                }
+            });
+        }
+    });
+}
+
+function paso1ModificarPortada(files, id, callback){
+    if (files && files.portada != null) {
+        let imagen =files.portada;
+        imagen.mv('public/portadas/' + id + '.png', function(err) {
+            if (err) {
+                callback(null); // ERROR
+            } else {
+                paso2ModificarAudio(files, id, callback); // SIGUIENTE
+            }
+        });
+    } else {
+        paso2ModificarAudio(files, id, callback); // SIGUIENTE
+    }
+};
+
+function paso2ModificarAudio(files, id, callback){
+    if (files && files.audio != null) {
+        let audio = files.audio;
+        audio.mv('public/audios/'+id+'.mp3', function(err) {
+            if (err) {
+                callback(null); // ERROR
+            } else {
+                callback(true); // FIN
+            }
+        });
+    } else {
+        callback(true); // FIN
+    }
+};
+
+let getPublicaciones = (req,res,swig,gestorBD) => {
+    let criterio = { autor : req.session.usuario };
+    gestorBD.obtenerCanciones(criterio, function(canciones) {
+        if (canciones == null) {
+            res.send("Error al listar ");
+        } else {
+            let respuesta = swig.renderFile('views/bpublicaciones.html',
+            {
+                canciones : canciones
+            });
+            res.send(respuesta);
+        }
+    });
+}
 
 let getCancion = (req,res,gestorBD,swig) => {
     let criterio = { "_id" :  gestorBD.mongo.ObjectID(req.params.id) };
@@ -31,6 +120,7 @@ let getCancion = (req,res,gestorBD,swig) => {
         }
     });
 }
+
 let getCanciones = swig => {
     let canciones = [
         { "nombre": "Blank space","precio":"1.2"},

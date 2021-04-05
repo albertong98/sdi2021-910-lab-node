@@ -25,6 +25,37 @@ let dburi = 'mongodb://admin:sdi@tiendamusica-shard-00-00.vadns.mongodb.net:2701
 let gestorBD = require("./modules/gestorBD.js");
 gestorBD.init(app,mongo);
 
+var routerUsuarioSession = express.Router();
+routerUsuarioSession.use(function(req, res, next) {
+    console.log("routerUsuarioSession");
+    if ( req.session.usuario ) {
+        // dejamos correr la petición
+        next();
+    } else {
+        console.log("va a : "+req.session.destino)
+        res.redirect("/identificarse");
+    }
+});
+app.use("/canciones/agregar",routerUsuarioSession);
+app.use("/publicaciones",routerUsuarioSession);
+
+let routerAudios = express.Router();
+routerAudios.use(function(req, res, next) {
+    console.log("routerAudios");
+    let path = require('path');
+    let idCancion = path.basename(req.originalUrl, '.mp3');
+    gestorBD.obtenerCanciones(
+        {"_id": mongo.ObjectID(idCancion) }, function (canciones) {
+            if(req.session.usuario && canciones[0].autor == req.session.usuario ){
+                next();
+            } else {
+                res.redirect("/tienda");
+            }
+        })
+});
+//Aplicar routerAudios
+app.use("/audios/",routerAudios);
+
 app.set('db',dburi);
 app.set('clave','abcdefg');
 app.set('crypto',crypto);
