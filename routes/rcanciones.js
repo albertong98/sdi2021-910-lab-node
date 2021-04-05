@@ -1,4 +1,4 @@
-module.exports = (app,swig) => {
+module.exports = (app,swig,mongo) => {
 
     app.get('/canciones', (req,res) => res.send(getCanciones(swig)));
 
@@ -10,7 +10,7 @@ module.exports = (app,swig) => {
 
     app.get('/canciones/:genero/:id', (req, res) => res.send('id: ' + req.params.id + '<br>' + 'Género: ' + req.params.genero));
 
-    app.post('/cancion',(req,res) => res.send(postCancion(req)));
+    app.post('/cancion',(req,res) => postCancion(req,res));
 };
 
 let getCanciones = swig => {
@@ -25,7 +25,28 @@ let getCanciones = swig => {
     });
 }
 
-let postCancion = req => 'Canción agregada '+req.body.nombre+'<br>'+'Genero: '+req.body.genero+'<br>'+'precio: '+req.body.precio
+let postCancion = (req,res) =>{
+    let cancion = {
+        nombre : req.body.nombre,
+        genero : req.body.genero,
+        precio : req.body.precio
+    }
+    mongo.MongoClient.connect(app.get('db'), function(err, db) {
+        if (err) {
+            res.send("Error de conexión: " + err);
+        } else {
+            let collection = db.collection('canciones');
+            collection.insertOne(cancion, function(err, result) {
+                if (err) {
+                    res.send("Error al insertar " + err);
+                } else {
+                    res.send("Agregada id: "+ result.ops[0]._id);
+                }
+                db.close();
+            });
+        }
+    });
+}
 
 let agregarCancion = swig => {
     return swig.renderFile('views/bagregar.html', {});
