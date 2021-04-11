@@ -41,7 +41,7 @@ let identificarUsuario = (app,req,res,gestorBD) => {
             res.send("No identificado: ");
         } else {
             req.session.usuario = usuarios[0].email;
-            res.send("identificado");
+            res.redirect("/publicaciones");
         }
     });
 }
@@ -56,7 +56,7 @@ let postUsuario = (app,req,res,gestorBD) => {
         if (id == null){
             res.send("Error al insertar el usuario");
         } else {
-            res.send('Usuario Insertado ' + id);
+            res.redirect('/identificarse');
         }
     });
 

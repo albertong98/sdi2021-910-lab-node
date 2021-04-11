@@ -91,4 +91,8 @@ require("./routes/rusuarios.js")(app,swig,gestorBD); // (app, param1, param2, et
 require("./routes/rcanciones.js")(app,swig,gestorBD);
 require("./routes/rcomentarios")(app,swig,gestorBD);
 
+app.get('/', function (req, res) {
+    res.redirect('/tienda');
+})
+
 app.listen(app.get('port'), () => console.log("server activo"));
