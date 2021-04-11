@@ -240,13 +240,30 @@ let getTienda = (res,req,gestorBD,swig) => {
     if( req.query.busqueda != null )
         criterio = { "nombre" : {$regex : ".*"+req.query.busqueda+".*"}  };
 
+    let pg = parseInt(req.query.pg); // Es String !!!
+    if ( req.query.pg == null){ // Puede no venir el param
+        pg = 1;
+    }
+
     gestorBD.obtenerCanciones( criterio,function(canciones) {
         if (canciones == null) {
             res.send("Error al listar ");
         } else {
+            let ultimaPg = total/4;
+            if (total % 4 > 0 ){ // Sobran decimales
+                ultimaPg = ultimaPg+1;
+            }
+            let paginas = []; // paginas mostrar
+            for(let i = pg-2 ; i <= pg+2 ; i++){
+                if ( i > 0 && i <= ultimaPg){
+                    paginas.push(i);
+                }
+            }
             let respuesta = swig.renderFile('views/btienda.html',
                 {
-                    canciones : canciones
+                    canciones : canciones,
+                    paginas : paginas,
+                    actual : pg
                 });
             res.send(respuesta);
         }
