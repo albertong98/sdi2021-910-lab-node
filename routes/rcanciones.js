@@ -23,7 +23,42 @@ module.exports = (app,swig,gestorBD) => {
     app.post('/cancion/modificar/:id', (req,res) => postModificarCancion(req,res,gestorBD));
 
     app.get('/cancion/eliminar/:id',(req,res) => eliminarCancion(req,res,gestorBD));
+
+    app.get('/cancion/comprar/:id',(req,res) => comprarCancion(req,res,gestorBD));
+
+    app.get('/compras', (req,res) => getCompras(req,res,gestorBD,swig));
 };
+
+let getCompras = (req,res,gestorBD,swig) => {
+    let criterio = { 'usuario' : req.session.usuario };
+
+    gestorBD.obtenerCompras(criterio, (compras) => {
+        if(compras == null)
+            res.send('error al listar');
+        else{
+            gestorBD.obtenerCanciones( {'_id' : {$in: compras.map(c => c.cancionId) }},(canciones) => {
+               res.send(swig.renderFile('views/bcompras.html',{
+                   canciones:canciones
+               }));
+            });
+        }
+    })
+}
+
+let comprarCancion = (req,res,gestorBD) => {
+    let cancionId = gestorBD.mongo.ObjectID(req.params.id);
+    let compra = {
+        usuario : req.session.usuario,
+        cancionId : cancionId
+    }
+    gestorBD.insertarCompra(compra ,function(idCompra){
+        if ( idCompra == null ){
+            res.send('Error al comprar canción');
+        } else {
+            res.redirect("/compras");
+        }
+    });
+}
 
 let eliminarCancion = (req,res,gestorBD) =>{
     let criterio = {"_id" : gestorBD.mongo.ObjectID(req.params.id) };
