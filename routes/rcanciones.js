@@ -21,7 +21,19 @@ module.exports = (app,swig,gestorBD) => {
     app.get('/cancion/modificar/:id', (req,res) => modificarCancion(req,res,gestorBD,swig));
 
     app.post('/cancion/modificar/:id', (req,res) => postModificarCancion(req,res,gestorBD));
+
+    app.get('/cancion/eliminar/:id',(req,res) => eliminarCancion(req,res,gestorBD));
 };
+
+let eliminarCancion = (req,res,gestorBD) =>{
+    let criterio = {"_id" : gestorBD.mongo.ObjectID(req.params.id) };
+    gestorBD.eliminarCancion(criterio,function(canciones){
+        if ( canciones == null )
+            res.send('error al eliminar la canción'+criterio.toString());
+        else
+            res.redirect("/publicaciones");
+    });
+}
 
 let modificarCancion = (req,res,gestorBD,swig) => {
     let criterio = { "_id" : gestorBD.mongo.ObjectID(req.params.id) };
