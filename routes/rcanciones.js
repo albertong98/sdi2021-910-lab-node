@@ -245,7 +245,7 @@ let getTienda = (res,req,gestorBD,swig) => {
         pg = 1;
     }
 
-    gestorBD.obtenerCanciones( criterio,function(canciones) {
+    gestorBD.obtenerCanciones( criterio,function(canciones,total) {
         if (canciones == null) {
             res.send("Error al listar ");
         } else {
