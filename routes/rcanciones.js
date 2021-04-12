@@ -51,11 +51,23 @@ let comprarCancion = (req,res,gestorBD) => {
         usuario : req.session.usuario,
         cancionId : cancionId
     }
-    gestorBD.insertarCompra(compra ,function(idCompra){
-        if ( idCompra == null ){
-            res.send('Error al comprar canción');
-        } else {
-            res.redirect("/compras");
+    gestorBD.obtenerCanciones({"_id" : cancionId}, canciones => {
+        if(canciones[0].autor == req.session.usuario)
+            res.redirect("/cancion/"+req.params.id+"?mensaje=El autor de la canción no la puede comprar&tipoMensaje=alert-danger");
+        else{
+            gestorBD.obtenerCompras({usuario : req.session.usuario, cancionId : cancionId},compras => {
+                if(compras != null && compras.length > 0) {
+                    res.redirect("/cancion/"+req.params.id+"?mensaje=Ya ha comprado esta canción&tipoMensaje=alert-danger");
+                }else {
+                    gestorBD.insertarCompra(compra, function (idCompra) {
+                        if (idCompra == null) {
+                            res.send('Error al comprar canción');
+                        } else {
+                            res.redirect("/compras");
+                        }
+                    });
+                }
+            });
         }
     });
 }
@@ -159,19 +171,24 @@ let getCancion = (req,res,gestorBD,swig) => {
         if ( canciones == null ){
             res.send("Error al recuperar la canción.");
         } else {
-            let criterio = { "cancion_id" : canciones[0]._id }
-            gestorBD.obtenerComentarios(criterio,function(comentarios){
-                if(comentarios == null){
-                    res.send("Error al recuperar los comentarios.");
-                }else{
-                    let respuesta = swig.renderFile('views/bcancion.html',
-                        {
-                            cancion : canciones[0],
-                            comentarios : comentarios
-                        });
-                    res.send(respuesta);
-                }
-            })
+            gestorBD.obtenerCompras({ usuario : req.session.usuario, cancionId : canciones[0]._id},compras => {
+                let compra = compras != null && compras.length > 0;
+                let criterio = { "cancion_id" : canciones[0]._id }
+                gestorBD.obtenerComentarios(criterio,function(comentarios){
+                    if(comentarios == null){
+                        res.send("Error al recuperar los comentarios.");
+                    }else{
+                        let respuesta = swig.renderFile('views/bcancion.html',
+                            {
+                                cancion : canciones[0],
+                                comentarios : comentarios,
+                                usuario : req.session.usuario,
+                                compra: compra
+                            });
+                        res.send(respuesta);
+                    }
+                });
+            });
         }
     });
 }
@@ -244,26 +261,25 @@ let getTienda = (res,req,gestorBD,swig) => {
     if ( req.query.pg == null){ // Puede no venir el param
         pg = 1;
     }
-
     gestorBD.obtenerCanciones( criterio,function(canciones,total) {
         if (canciones == null) {
             res.send("Error al listar ");
         } else {
-            let ultimaPg = total/4;
-            if (total % 4 > 0 ){ // Sobran decimales
-                ultimaPg = ultimaPg+1;
+            let ultimaPg = total / 4;
+            if (total % 4 > 0) { // Sobran decimales
+                ultimaPg = ultimaPg + 1;
             }
             let paginas = []; // paginas mostrar
-            for(let i = pg-2 ; i <= pg+2 ; i++){
-                if ( i > 0 && i <= ultimaPg){
+            for (let i = pg - 2; i <= pg + 2; i++) {
+                if (i > 0 && i <= ultimaPg) {
                     paginas.push(i);
                 }
             }
             let respuesta = swig.renderFile('views/btienda.html',
                 {
-                    canciones : canciones,
-                    paginas : paginas,
-                    actual : pg
+                    canciones: canciones,
+                    paginas: paginas,
+                    actual: pg,
                 });
             res.send(respuesta);
         }
