@@ -28,6 +28,8 @@ let dburi = 'mongodb://admin:sdi@tiendamusica-shard-00-00.vadns.mongodb.net:2701
 let gestorBD = require("./modules/gestorBD.js");
 gestorBD.init(app,mongo);
 
+
+
 var routerUsuarioSession = express.Router();
 routerUsuarioSession.use(function(req, res, next) {
     console.log("routerUsuarioSession");
@@ -106,6 +108,7 @@ app.use(express.static('public'));
 require("./routes/rusuarios.js")(app,swig,gestorBD); // (app, param1, param2, etc.)
 require("./routes/rcanciones.js")(app,swig,gestorBD);
 require("./routes/rcomentarios")(app,swig,gestorBD);
+require("./routes/rerror")(app,swig);
 
 app.get('/', function (req, res) {
     res.redirect('/tienda');
@@ -115,9 +118,18 @@ app.use((err,req,res,next) => {
     console.log("Error producido: "+err);
     if(!res.headersSent){
         res.status(400);
-        res.send("Recurso no disponible");
+        res.redirect("/notavailable");
     }
 });
+
+let routerError = express.Router();
+routerError.use((req,res,next) => {
+    let err = new Error('Not Found');
+    err.status = 404;
+    res.redirect("/notfound");
+});
+
+app.use(routerError);
 
 https.createServer({
     key: fs.readFileSync('certificates/alice.key'),
