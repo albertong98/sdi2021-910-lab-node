@@ -10,6 +10,9 @@ app.use(function(req, res, next) {
     next();
 });
 
+let rest = require('request');
+app.set('rest',rest);
+
 let jwt = require('jsonwebtoken');
 app.set('jwt',jwt);
 
